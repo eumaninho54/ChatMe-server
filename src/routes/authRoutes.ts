@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { authUserController } from "../modules/auth/useCases/authUser";
-import { signInController } from "../modules/auth/useCases/signIn";
-import { signUpController } from "../modules/auth/useCases/signUp";
-import { verifyTokenController } from "../modules/auth/useCases/verifyToken";
+import { authUserController } from "../controllers/auth/useCases/authUser";
+import { signInController } from "../controllers/auth/useCases/signIn";
+import { signUpController } from "../controllers/auth/useCases/signUp";
+import { verifyTokenController } from "../controllers/auth/useCases/verifyToken";
 
 
 export const authRoutes = Router()
 
-authRoutes.post("/", 
+authRoutes.get("/", 
   (res, req, next) => verifyTokenController.handle(res, req, next), 
   (res, req, next) => authUserController.handle(res, req))
 

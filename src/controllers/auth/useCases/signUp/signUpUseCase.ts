@@ -51,7 +51,6 @@ export class SignUpUseCase {
       const token = jwt.sign({ id: newUser.id }, process.env.SECRET, {});
 
       return { 
-        id: newUser.id,
         username: newUser.name,
         email: newUser.email,
         auth: true,

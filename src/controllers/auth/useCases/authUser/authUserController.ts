@@ -5,9 +5,9 @@ export class AuthUserController {
   constructor(private authUserUseCase: AuthUserUseCase) {}
 
   async handle(req: Request, res: Response) {
-    const { token } = req.params
+    const { token, id } = req.params
 
-    const result = await this.authUserUseCase.execute({ token });
+    const result = await this.authUserUseCase.execute({ token, id });
 
     return res.status(201).json(result);
   }

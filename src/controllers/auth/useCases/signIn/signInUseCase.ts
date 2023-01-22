@@ -26,15 +26,13 @@ export class SignInUseCase {
       const token = jwt.sign({ id: user.id }, process.env.SECRET, {});
 
       return {
-        id: user.id,
         username: user.name,
         email: user.email,
         auth: true,
         token: token
       }
-
-    } catch (error) {
-      console.log(error)
+    } 
+    catch (error) {
       throw new AppError("User not found", 400);
     }
   } 
