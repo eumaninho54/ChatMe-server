@@ -6,12 +6,14 @@ export class VerifyTokenController {
   constructor(private verifyTokenUseCase: VerifyTokenUseCase) {}
 
   async handle(req: Request, res: Response, next: NextFunction) {
-    const token = req.header("x-access-token");
+    const accessToken = req.header("x-access-token");
+    const refreshToken = req.header("x-refresh-token")
 
-    const result = await this.verifyTokenUseCase.execute({ token });
+    const result = await this.verifyTokenUseCase.execute({ accessToken, refreshToken });
 
     req.params.id = result.id;
-    req.params.token = result.token;
+    req.params.accessToken = result.newAccessToken;
+    req.params.refreshToken = result.newRefreshToken
 
     next()
   }

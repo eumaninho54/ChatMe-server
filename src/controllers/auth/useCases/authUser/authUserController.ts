@@ -5,9 +5,9 @@ export class AuthUserController {
   constructor(private authUserUseCase: AuthUserUseCase) {}
 
   async handle(req: Request, res: Response) {
-    const { token, id } = req.params
+    const refreshToken = req.header("x-refresh-token")
 
-    const result = await this.authUserUseCase.execute({ token, id });
+    const result = await this.authUserUseCase.execute({ refreshToken });
 
     return res.status(201).json(result);
   }

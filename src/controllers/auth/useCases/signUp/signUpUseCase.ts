@@ -40,21 +40,27 @@ export class SignUpUseCase {
         name = email.split('@')[0].split('.')[0] + Math.floor(Math.random() * 9)
       }
 
+      
       const newUser = await prisma.user.create({
         data: {
           email,
           password: hashPassword,
-          name: name + '#' + idName
+          name: name + '#' + idName,
+          refreshToken: ''
         }
       })
+      
+      const accessToken = jwt.sign({ id: newUser.id }, process.env.SECRET, { expiresIn: '1h' });
+      const refreshToken = crypto.HmacSHA1(accessToken, "password").toString()
 
-      const token = jwt.sign({ id: newUser.id }, process.env.SECRET, {});
+      await prisma.user.update({ where: { id: newUser.id }, data: { refreshToken: refreshToken } })
 
       return { 
         username: newUser.name,
         email: newUser.email,
         auth: true,
-        token: token
+        accessToken: accessToken,
+        refreshToken: refreshToken
       }
     } catch (err) {
       throw new AppError('Server error', 500);

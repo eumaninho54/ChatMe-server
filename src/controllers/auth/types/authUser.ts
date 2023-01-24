@@ -1,4 +1,3 @@
 export type IAuthUser = {
-  token: string
-  id: string
+  refreshToken: string
 }

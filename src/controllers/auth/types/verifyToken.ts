@@ -1,8 +1,9 @@
 export type JwtVerify = {
-  id: number
+  id: string
   iat: number
 }
 
 export type VerifyTokenDTO = {
-  token: string
+  accessToken: string
+  refreshToken: string
 }
