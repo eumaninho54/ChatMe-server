@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { authUserController } from "../controllers/auth/useCases/authUser";
-import { signInController } from "../controllers/auth/useCases/signIn";
-import { signUpController } from "../controllers/auth/useCases/signUp";
-import { verifyTokenController } from "../controllers/auth/useCases/verifyToken";
+import { authUserController } from "../modules/auth/useCases/authUser";
+import { signInController } from "../modules/auth/useCases/signIn";
+import { signUpController } from "../modules/auth/useCases/signUp";
 
 
 export const authRoutes = Router()

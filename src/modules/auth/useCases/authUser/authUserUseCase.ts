@@ -9,12 +9,14 @@ require("dotenv").config();
 export class AuthUserUseCase {
   async execute({ refreshToken }: IAuthUser) {
     try {
-      const user = await prisma.user.findFirstOrThrow({ where: { refreshToken }})
+      const user = await prisma.user.findFirstOrThrow({ where: { refreshToken, expiresAt: { gte: new Date() } }})
 
       const accessToken = jwt.sign({ id: user.id }, process.env.SECRET, { expiresIn: '1h' });
-      const newRefreshToken = crypto.HmacSHA1(accessToken, "password").toString()
+      const newRefreshToken = crypto.HmacSHA1(accessToken, process.env.SECRET).toString()
+      let expiresAt = new Date()
+      expiresAt.setDate(new Date().getDate() + 7)
 
-      await prisma.user.update({ where: { id: user.id }, data: { refreshToken: newRefreshToken }})
+      await prisma.user.update({ where: { id: user.id }, data: { refreshToken: newRefreshToken, expiresAt }})
 
       return {
         username: user.name,

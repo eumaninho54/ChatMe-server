@@ -11,13 +11,16 @@ export class VerifyTokenUseCase {
     let id = ''
 
     try {
-      if(await prisma.user.findFirst({where: { refreshToken: refreshToken }})){
+      if(await prisma.user.findFirst({where: { refreshToken: refreshToken, expiresAt: { gte: new Date() } }})){
         jwt.verify(accessToken, process.env.SECRET, async (err, decoded: JwtVerify) => {
           if (err.name == 'TokenExpiredError'){
             newAccessToken = jwt.sign({ id: decoded.id }, process.env.SECRET, { expiresIn: '1h' });
-            newRefreshToken = CryptoJS.HmacSHA1(newAccessToken, "password").toString()
-  
-            await prisma.user.update({where: { id: decoded.id }, data: { refreshToken: newRefreshToken } })
+            newRefreshToken = CryptoJS.HmacSHA1(newAccessToken, process.env.SECRET).toString()
+
+            let expiresAt = new Date()
+            expiresAt.setDate(new Date().getDate() + 7)
+
+            await prisma.user.update({where: { id: decoded.id }, data: { refreshToken: newRefreshToken, expiresAt } })
           }
           else if(err) throw 401
   

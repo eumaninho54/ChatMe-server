@@ -19,14 +19,16 @@ export class SignInUseCase {
     }
 
     try {
-      const hashPassword = crypto.HmacSHA1(password, "password").toString()
+      const hashPassword = crypto.HmacSHA1(password, process.env.SECRET).toString()
 
       const user = await prisma.user.findFirstOrThrow({ where: { password: hashPassword, email: email }})
 
       const accessToken = jwt.sign({ id: user.id }, process.env.SECRET, { expiresIn: '1h' });
-      const refreshToken = crypto.HmacSHA1(accessToken, "password").toString()
+      const refreshToken = crypto.HmacSHA1(accessToken, process.env.SECRET).toString()
+      let expiresAt = new Date()
+      expiresAt.setDate(new Date().getDate() + 7)
 
-      await prisma.user.update({ where: { id: user.id }, data: { refreshToken }})
+      await prisma.user.update({ where: { id: user.id }, data: { refreshToken, expiresAt }})
 
       return {
         username: user.name,
@@ -37,6 +39,7 @@ export class SignInUseCase {
       }
     } 
     catch (error) {
+      console.log(error)
       throw new AppError("User not found", 400);
     }
   } 

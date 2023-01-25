@@ -23,7 +23,7 @@ export class SignUpUseCase {
     }
       
     try {
-      const hashPassword = crypto.HmacSHA1(password, "password").toString()
+      const hashPassword = crypto.HmacSHA1(password, process.env.SECRET).toString()
       let name = email.split('@')[0].split('.')[0]
       let idName = ''
 
@@ -40,18 +40,21 @@ export class SignUpUseCase {
         name = email.split('@')[0].split('.')[0] + Math.floor(Math.random() * 9)
       }
 
-      
+      let expiresAt = new Date()
+      expiresAt.setDate(new Date().getDate() + 7)
+
       const newUser = await prisma.user.create({
         data: {
           email,
           password: hashPassword,
           name: name + '#' + idName,
-          refreshToken: ''
+          refreshToken: '',
+          expiresAt: expiresAt
         }
       })
       
       const accessToken = jwt.sign({ id: newUser.id }, process.env.SECRET, { expiresIn: '1h' });
-      const refreshToken = crypto.HmacSHA1(accessToken, "password").toString()
+      const refreshToken = crypto.HmacSHA1(accessToken, process.env.SECRET).toString()
 
       await prisma.user.update({ where: { id: newUser.id }, data: { refreshToken: refreshToken } })
 
