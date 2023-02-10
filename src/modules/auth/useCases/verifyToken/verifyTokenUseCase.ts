@@ -8,37 +8,43 @@ export class VerifyTokenUseCase {
   async execute({ refreshToken, accessToken }: VerifyTokenDTO) {
     let newRefreshToken = ''
     let newAccessToken = ''
-    let id = ''
-
+    let idUser = ''
+    let hasError = false
+    
     try {
-      if(await prisma.user.findFirst({where: { refreshToken: refreshToken, expiresAt: { gte: new Date() } }})){
-        jwt.verify(accessToken, process.env.SECRET, async (err, decoded: JwtVerify) => {
-          if (err.name == 'TokenExpiredError'){
-            newAccessToken = jwt.sign({ id: decoded.id }, process.env.SECRET, { expiresIn: '1h' });
-            newRefreshToken = CryptoJS.HmacSHA1(newAccessToken, process.env.SECRET).toString()
+      await prisma.user.findFirstOrThrow({where: { refreshToken: refreshToken, expiresAt: { gte: new Date() } }})
 
-            let expiresAt = new Date()
-            expiresAt.setDate(new Date().getDate() + 7)
+      jwt.verify(accessToken, process.env.SECRET, async (err, decoded: JwtVerify) => {
+        if (err?.name  == 'TokenExpiredError'){
+          newAccessToken = jwt.sign({ id: decoded.id }, process.env.SECRET, { expiresIn: '1h' });
+          newRefreshToken = CryptoJS.HmacSHA1(newAccessToken, process.env.SECRET).toString()
+          idUser = decoded.id
 
-            await prisma.user.update({where: { id: decoded.id }, data: { refreshToken: newRefreshToken, expiresAt } })
-          }
-          else if(err) throw 401
-  
+          let expiresAt = new Date()
+          expiresAt.setDate(new Date().getDate() + 7)
+
+          await prisma.user.update({where: { id: decoded.id }, data: { refreshToken: newRefreshToken, expiresAt } })
+        }
+
+        else if(err) hasError = true
+    
+        else {
           newAccessToken = accessToken
           newRefreshToken = refreshToken
-          id = String(decoded.id);
-        });
-  
-        return {
-          id,
-          newAccessToken,
-          newRefreshToken
-        };
-      }
-      else throw 401
+          idUser = decoded.id
+        }
+      })
 
-    } catch (err) {
-      throw new AppError("Invalid authentication", err);
+      if(hasError) throw 401
+  
+      return {
+        idUser,
+        newAccessToken,
+        newRefreshToken
+      };
+    }
+    catch (err) {
+      throw new AppError("Invalid authentication", 401);
     }
   }
 }

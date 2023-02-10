@@ -1,7 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {dfd
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -11,12 +11,54 @@ datasource db {
 }
 
 model User {
-  id           String        @id      @default(uuid())
-  name         String        @unique
-  email        String        @unique
-  password     String   
-  refreshToken String
-  expiresAt    DateTime 
-
+  id                    String              @id      @default(uuid())
+  name                  String              @unique
+  email                 String              @unique
+  password              String  
+  imageUrl              String?             @default("")
+  isActive              Boolean?            @default(false) 
+  friends               UserFriend[]        @relation("userFriends")
+  userFriends           UserFriend[]        @relation("friendUsers")
+  friendshipSent        FriendshipRequest[] @relation("friendshipSent")
+  friendshipReceived    FriendshipRequest[] @relation("friendshipReceived")
+  friendMessageSent     UserMessage[]       @relation("friendMessageSent")
+  friendMessageReceived UserMessage[]       @relation("friendMessageReceived")
+  refreshToken          String
+  expiresAt             DateTime 
+ 
   @@map("user")
+}
+
+model UserFriend {
+  id          String   @id      @default(uuid())
+  userId      String 
+  friendId    String
+  user        User     @relation("userFriends", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  friend      User     @relation("friendUsers", fields: [friendId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("userFriend")
+}
+
+model FriendshipRequest {
+  id          String   @id      @default(uuid())
+  senderId    String
+  sender      User     @relation("friendshipSent", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiverId String
+  receiver    User     @relation("friendshipReceived", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  isAccepted  Boolean? @default(false)
+
+  @@map("friendshipRequest")
+}
+
+model UserMessage {
+  id          String   @id      @default(uuid())
+  senderId    String
+  sender      User     @relation("friendMessageSent", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiverId  String
+  receiver    User     @relation("friendMessageReceived", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  message     String
+  createdAt   DateTime
+  isRead      Boolean? @default(false)
+
+  @@map("userMessage")
 }
