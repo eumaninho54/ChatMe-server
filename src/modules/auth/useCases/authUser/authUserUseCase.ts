@@ -9,6 +9,8 @@ require("dotenv").config();
 export class AuthUserUseCase {
   async execute({ refreshToken }: IAuthUser) {
     try {
+      if(!refreshToken) throw 400
+
       const user = await prisma.user.findFirstOrThrow({ where: { refreshToken, expiresAt: { gte: new Date() } }})
 
       const accessToken = jwt.sign({ id: user.id }, process.env.SECRET, { expiresIn: '1h' });
