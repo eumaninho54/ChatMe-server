@@ -39,7 +39,6 @@ export class SignInUseCase {
       }
     } 
     catch (error) {
-      console.log(error)
       throw new AppError("User not found", 400);
     }
   } 
