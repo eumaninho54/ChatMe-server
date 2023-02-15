@@ -21,6 +21,7 @@ export class AuthUserUseCase {
       await prisma.user.update({ where: { id: user.id }, data: { refreshToken: newRefreshToken, expiresAt }})
 
       return {
+        id: user.id,
         username: user.name,
         email: user.email,
         auth: true,

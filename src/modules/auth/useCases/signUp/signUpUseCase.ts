@@ -59,6 +59,7 @@ export class SignUpUseCase {
       await prisma.user.update({ where: { id: newUser.id }, data: { refreshToken: refreshToken } })
 
       return { 
+        id: newUser.id,
         username: newUser.name,
         email: newUser.email,
         auth: true,

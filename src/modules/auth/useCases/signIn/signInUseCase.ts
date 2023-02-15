@@ -23,7 +23,7 @@ export class SignInUseCase {
 
       const user = await prisma.user.findFirstOrThrow({ where: { password: hashPassword, email: email }})
 
-      const accessToken = jwt.sign({ id: user.id }, process.env.SECRET, { expiresIn: '1h' });
+      const accessToken = jwt.sign({ id: user.id }, process.env.SECRET, { expiresIn: 1 });
       const refreshToken = crypto.HmacSHA1(accessToken, process.env.SECRET).toString()
       let expiresAt = new Date()
       expiresAt.setDate(new Date().getDate() + 7)
@@ -31,6 +31,7 @@ export class SignInUseCase {
       await prisma.user.update({ where: { id: user.id }, data: { refreshToken, expiresAt }})
 
       return {
+        id: user.id,
         username: user.name,
         email: user.email,
         auth: true,
