@@ -4,7 +4,7 @@ import { prisma } from "../../../../config/prismaClient";
 require("dotenv").config();
 
 export class SearchUseCase {
-  async execute({ username, idUser, accessToken, refreshToken }: SearchDTO) {
+  async execute({ username, idUser }: SearchDTO) {
     try {
       const searchedUsers = await prisma.user.findMany({
         where: { 
@@ -24,9 +24,7 @@ export class SearchUseCase {
           id: searchedUser.id,
           username: searchedUser.name,
           imageUrl: searchedUser.imageUrl,
-          hasFriendshipRequest: hasFriendshipRequest ? true : false,
-          accessToken,
-          refreshToken
+          hasFriendshipRequest: hasFriendshipRequest ? true : false
         }
       }))
     }
