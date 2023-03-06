@@ -9,41 +9,36 @@ export class GetAllUseCase {
     if(!idUser) throw new AppError("No authorization", 401);
 
     try {
-      const friendChat = await prisma.userFriend.findMany({ 
-        where: { userId: idUser },
-        select: { id: true, friend: true, friendId: true }
+      const chats = await prisma.chat.findMany({ 
+        where: { users: { none: { id: idUser } } },
+        select: { id: true, users: true, messages: true, isGroup: true, name: true, imageUrl: true }
       })
 
-      return await Promise.all(friendChat.map(async(friendChat) => {
-        const messages = await prisma.userMessage.findMany({
-          where: { 
-            OR: [
-              { receiverId: idUser, senderId: friendChat.friendId },
-              { receiverId: friendChat.friendId, senderId: idUser }
-            ],
-          },
+      return await Promise.all(chats.map(async(chat) => {
+        const messages = await prisma.chatMessage.findMany({
+          where: { idChat: chat.id },
           orderBy: { createdAt: 'desc' },
           select: { 
             message: true, 
-            isRead: true, 
-            isReceived: true, 
+            isReadBy: true, 
             createdAt: true, 
             id: true, 
             senderId: true,
-            receiverId: true
+            isReceivedBy: true
           },
           take: 20
         })
 
-        const notRead = messages.filter((message) => message.receiverId == idUser && !message.isRead ).length
+        const notRead = messages.filter((message) => !message.isReadBy.includes(idUser)).length
 
         return {
-          idChat: friendChat.id,
-          usernameFriend: friendChat.friend.name,
-          avatarFriend: friendChat.friend.imageUrl,
+          idChat: chat.id,
+          name: chat.name,
+          icon: chat.imageUrl,
           messages: messages,
           notRead: notRead,
-          isOnline: friendChat.friend.isActive
+          isGroup: chat.isGroup,
+          isOnline: !chat.isGroup ? chat.users.find((user) => user.id != idUser) : null
         }
 
       }))
