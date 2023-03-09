@@ -29,6 +29,7 @@ CREATE TABLE "userMessage" (
     "message" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL,
     "isRead" BOOLEAN DEFAULT false,
+    "isReceived" BOOLEAN DEFAULT false,
 
     CONSTRAINT "userMessage_pkey" PRIMARY KEY ("id")
 );
