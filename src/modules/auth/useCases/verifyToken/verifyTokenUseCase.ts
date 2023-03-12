@@ -34,7 +34,7 @@ export class VerifyTokenUseCase {
       })
 
       if(hasError) throw 401
-  
+
       return {
         idUser,
         newAccessToken,
