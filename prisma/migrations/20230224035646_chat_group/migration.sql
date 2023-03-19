@@ -17,7 +17,7 @@ DROP TABLE "userMessage";
 CREATE TABLE "chat" (
     "id" TEXT NOT NULL,
     "isGroup" BOOLEAN DEFAULT false,
-    "name" TEXT NOT NULL,
+    "name" TEXT DEFAULT '',
     "imageUrl" TEXT DEFAULT '',
 
     CONSTRAINT "chat_pkey" PRIMARY KEY ("id")

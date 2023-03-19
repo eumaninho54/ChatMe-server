@@ -9,10 +9,12 @@ export class GetAllUseCase {
     if(!idUser) throw new AppError("No authorization", 401);
 
     try {
-      const chats = await prisma.chat.findMany({ 
-        where: { users: { none: { id: idUser } } },
+      let chats = await prisma.chat.findMany({ 
+        where: { users: { some: { id: idUser } } },
         select: { id: true, users: true, messages: true, isGroup: true, name: true, imageUrl: true }
       })
+
+      chats = chats.filter((chat) => chat.users.length > 1)
 
       return await Promise.all(chats.map(async(chat) => {
         const messages = await prisma.chatMessage.findMany({
@@ -33,6 +35,7 @@ export class GetAllUseCase {
 
         return {
           idChat: chat.id,
+          users: chat.users,
           name: chat.name,
           icon: chat.imageUrl,
           messages: messages,

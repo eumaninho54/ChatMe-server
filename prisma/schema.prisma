@@ -50,7 +50,7 @@ model FriendshipRequest {
 model Chat {
   id       String        @id @default(uuid())
   isGroup  Boolean?      @default(false)
-  name     String
+  name     String?       @default("")
   imageUrl String?       @default("")
   messages ChatMessage[] @relation("chatMessages")
   users    User[]        @relation("ChatToUser")
