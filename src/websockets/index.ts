@@ -3,8 +3,6 @@ import { io } from "../http";
 import { IChatProps, IMessageProps } from "./types";
 
 io.on("connection", socket => {
-  console.log(socket.id)
-  
   socket.on("chat", async(data: IChatProps) => {
     await prisma.user.update({ where: { id: data.idUser }, data: { isActive: true } })
 
