@@ -4,11 +4,11 @@ import { prisma } from "../../../../config/prismaClient";
 require("dotenv").config();
 
 export class SearchUseCase {
-  async execute({ username, idUser }: SearchDTO) {
+  async execute({ name, idUser }: SearchDTO) {
     try {
       const searchedUsers = await prisma.user.findMany({
         where: { 
-          name: { contains: username.trim() , mode: 'insensitive' }, 
+          name: { contains: name.trim() , mode: 'insensitive' }, 
           id: { not: idUser },
           friends: { none: { friendId: idUser  } }
         },
@@ -22,7 +22,7 @@ export class SearchUseCase {
 
         return {
           id: searchedUser.id,
-          username: searchedUser.name,
+          name: searchedUser.name,
           imageUrl: searchedUser.imageUrl,
           hasFriendshipRequest: hasFriendshipRequest ? true : false
         }

@@ -8,7 +8,7 @@ export class SearchController {
     const { q, idUser } = req.query
 
     const result = await this.searchUseCase.execute({ 
-      username: q as string, 
+      name: q as string, 
       idUser: idUser as string
     });
 

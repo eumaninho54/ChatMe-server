@@ -32,7 +32,7 @@ export class SignInUseCase {
 
       return {
         id: user.id,
-        username: user.name,
+        name: user.name,
         email: user.email,
         auth: true,
         accessToken: accessToken,

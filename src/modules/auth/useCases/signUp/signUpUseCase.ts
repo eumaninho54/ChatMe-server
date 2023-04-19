@@ -60,7 +60,7 @@ export class SignUpUseCase {
 
       return { 
         id: newUser.id,
-        username: newUser.name,
+        name: newUser.name,
         email: newUser.email,
         auth: true,
         accessToken: accessToken,

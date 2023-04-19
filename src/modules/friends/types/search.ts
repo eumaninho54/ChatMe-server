@@ -1,4 +1,4 @@
 export type SearchDTO = {
-  username: string
+  name: string
   idUser: string
 }
