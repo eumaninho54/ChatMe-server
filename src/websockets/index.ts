@@ -19,7 +19,7 @@ io.on("connection", socket => {
     const message = await prisma.chatMessage.create({ data: {
       chat: { connect: { id: chat.id }},
       sender: { connect: { id: data.idUser }},
-
+      createdAt: new Date(),
       message: data.message
     }})
 
