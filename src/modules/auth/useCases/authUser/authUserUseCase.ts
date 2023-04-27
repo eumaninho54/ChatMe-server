@@ -30,7 +30,7 @@ export class AuthUserUseCase {
       }
     } 
     catch (error) {
-      throw new AppError("Invalid authentication", 400);
+      throw new AppError("Invalid authentication", 401);
     }
   }
 }
