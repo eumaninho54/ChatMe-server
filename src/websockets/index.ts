@@ -1,165 +1,40 @@
-import { CreateNotificationBody } from "onesignal-node/lib/types";
-import { prisma } from "../config/prismaClient";
 import { io } from "../http";
-import { IChatProps, IMessageProps, IReadMessageProps, IReceiveMessageProps } from "./types";
-import * as OneSignal from 'onesignal-node';  
+import {
+  handleOnChat,
+  IChatProps,
+  handleOnNewMessage,
+  INewMessageProps,
+  handleOnReadMessage,
+  IReadMessageProps,
+  IReceiveMessageProps,
+  handleOnReceiveMessage,
+} from "./listeners";
+import * as OneSignal from "@onesignal/node-onesignal";
 require("dotenv").config();
 
-io.on("connection", socket => {
-  socket.on("chat", async(data: IChatProps) => {
-    await prisma.user.update({ where: { id: data.idUser }, data: { isActive: true } })
+const configuration = OneSignal.createConfiguration({
+  authMethods: {
+    app_key: {
+      tokenProvider: { getToken: () => process.env.ONESIGNAL_API_KEY },
+    },
+  },
+});
+const client = new OneSignal.DefaultApi(configuration);
 
-    socket.join(data.idChat)
-  })
+io.on("connection", (socket) => {
+  socket.on("chat", async (data: IChatProps) => {
+    await handleOnChat(data, socket);
+  });
 
-  socket.on("newMessage", async(data: IMessageProps) => {
-    const client = new OneSignal.Client(process.env.ONESIGNAL_APP_ID, process.env.ONESIGNAL_API_KEY);
-    const chat = await prisma.chat.findFirst({ where: { id: data.idChat } })  
+  socket.on("newMessage", async (data: INewMessageProps) => {
+    await handleOnNewMessage(data, client);
+  });
 
-    const message = await prisma.chatMessage.create({ 
-      data: {
-        chat: { connect: { id: chat.id }},
-        sender: { connect: { id: data.idUser }},
-        createdAt: new Date(),
-        message: data.message,
-        isReceivedBy: [data.idUser],
-        isReadBy: [data.idUser]
-      },
-      select: {
-        id: true,
-        message: true,
-        isReceivedBy: true,
-        isReadBy: true,
-        createdAt: true,
-        sender: { 
-          select: { 
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-          } 
-        },
-      }
-    })
+  socket.on("readMessage", async (data: IReadMessageProps) => {
+    await handleOnReadMessage(data);
+  });
 
-    const allMessages = await prisma.chatMessage.findMany({
-      where: { idChat: chat.id },
-      orderBy: { createdAt: 'desc' },
-      select: { 
-        isReadBy: true,
-        sender: { 
-          select: { 
-            id: true,
-          } 
-        },
-      },
-      take: 20
-    })
-
-    try {
-      const notification: CreateNotificationBody = {
-        contents: {
-          
-        },
-        include_player_ids: []
-      }
-
-      //client.createNotification(notification)
-    } 
-    catch (err) {
-      if (err instanceof OneSignal.HTTPError) {
-        console.log(err.statusCode);
-        console.log(err.body);
-      }
-    }
-    io.to(data.idChat).emit("newMessage", {
-      idChat: chat.id, 
-      message: message
-    })
-  })
-
-  socket.on("readMessage", async(data: IReadMessageProps) => {
-    const chat = await prisma.chat.findFirst({ where: { id: data.idChat } })
-
-    await prisma.chatMessage.updateMany({
-      where: {
-        idChat: data.idChat, 
-        id: {
-          in: data.messagesId
-        } 
-      },
-      data: {
-        isReadBy: {          
-          push: data.idUser
-        }
-      }
-    })
-    
-
-    const allMessages = await prisma.chatMessage.findMany({ 
-      where: { idChat: data.idChat },
-      select: { 
-        id: true,
-        message: true,
-        isReceivedBy: true,
-        isReadBy: true,
-        createdAt: true,
-        sender: { 
-          select: { 
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-          } 
-        },
-      },
-      orderBy: { createdAt: "desc" }
-    })
-
-    io.to(data.idChat).emit("editMessage", {
-      idChat: chat.id, 
-      messages: allMessages
-    })
-  })
-
-  socket.on("receiveMessage", async(data: IReceiveMessageProps) => {
-    const chat = await prisma.chat.findFirst({ where: { id: data.idChat } })
-
-    await prisma.chatMessage.update({
-      where: {
-        id: data.messageId 
-      },
-      data: {
-        isReceivedBy: {          
-          push: data.idUser
-        }
-      }
-    })
-
-    const allMessages = await prisma.chatMessage.findMany({ 
-      where: { idChat: data.idChat },
-      select: { 
-        id: true,
-        message: true,
-        isReceivedBy: true,
-        isReadBy: true,
-        createdAt: true,
-        sender: { 
-          select: { 
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-          } 
-        },
-      },
-      orderBy: { createdAt: "desc" }
-    })
-
-    io.to(data.idChat).emit("editMessage", {
-      idChat: chat.id, 
-      messages: allMessages
-    })
-  })
-})
-
+  socket.on("receiveMessage", async (data: IReceiveMessageProps) => {
+    await handleOnReceiveMessage(data)
+  });
+});
