@@ -11,27 +11,65 @@ export class GetAllUseCase {
     try {
       let chats = await prisma.chat.findMany({ 
         where: { users: { some: { id: idUser } } },
-        select: { id: true, users: true, messages: true, isGroup: true, name: true, imageUrl: true }
+        select: { 
+          id: true, 
+          users: { 
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              imageUrl: true,
+              isActive: true
+            } 
+          }, 
+          messages: true, 
+          isGroup: true, 
+          name: true, 
+          imageUrl: true 
+        }
       })
 
-      chats = chats.filter((chat) => chat.users.length > 1)
-
+    
       return await Promise.all(chats.map(async(chat) => {
         const messages = await prisma.chatMessage.findMany({
           where: { idChat: chat.id },
           orderBy: { createdAt: 'desc' },
           select: { 
-            message: true, 
-            isReadBy: true, 
-            createdAt: true, 
-            id: true, 
-            senderId: true,
-            isReceivedBy: true
+            id: true,
+            idChat: true,
+            isReceivedBy: true,
+            createdAt: true,
+            isReadBy: true,
+            message: true,
+            sender: { 
+              select: { 
+                id: true,
+                name: true,
+                email: true,
+                isActive: true,
+              } 
+            },
           },
           take: 20
         })
 
-        const notRead = messages.filter((message) => !message.isReadBy.includes(idUser)).length
+        messages.forEach(async(message) => {
+          if(!message.isReceivedBy.includes(idUser)){
+            await prisma.chatMessage.update({
+              where: {
+                id: message.id
+              },
+              data: { 
+                isReceivedBy: { 
+                  push: idUser 
+                } 
+              }
+            })
+          }
+        })
+
+        const notRead = messages.filter((message) => !message.isReadBy.includes(idUser) && message.sender.id != idUser).length
+        const isOnline = !chat.isGroup ? !!chat.users.find((user) => user.id != idUser) : null
 
         return {
           idChat: chat.id,
@@ -41,7 +79,7 @@ export class GetAllUseCase {
           messages: messages,
           notRead: notRead,
           isGroup: chat.isGroup,
-          isOnline: !chat.isGroup ? chat.users.find((user) => user.id != idUser) : null
+          isOnline: isOnline
         }
 
       }))
