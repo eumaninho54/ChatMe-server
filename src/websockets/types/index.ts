@@ -11,6 +11,18 @@ export interface IMessageProps {
   name: string
 }
 
+export interface IReadMessageProps {
+  idUser: string
+  idChat: string
+  messagesId: string[]
+}
+
+export interface IReceiveMessageProps {
+  idUser: string,
+  idChat: string,
+  messageId: string
+}
+
 export interface RoomUser {
   socket_id: string
   name: string

@@ -1,7 +1,7 @@
 import { CreateNotificationBody } from "onesignal-node/lib/types";
 import { prisma } from "../config/prismaClient";
 import { io } from "../http";
-import { IChatProps, IMessageProps } from "./types";
+import { IChatProps, IMessageProps, IReadMessageProps, IReceiveMessageProps } from "./types";
 import * as OneSignal from 'onesignal-node';  
 require("dotenv").config();
 
